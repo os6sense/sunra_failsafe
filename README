@@ -1,17 +1,15 @@
+failsafe is a continual recording process. It creates mp4 files 1 hour in
+length and saves them in the directory configured in the relevant config file
+in the config directory. It was originally intended to also record MP3 files 
+but given how easy it is to extract audio this seemed superfluous.
 
-Sunra failsafe is a continual recording process. It creates mp3 and mp4 files 
-1 hour in length and saves them in the directory configured in the relevant
-config file in the config directory.
+The primary reason for the failsafe is so that there is ALWAYS a recording,
+even if no-one pressed the "start recording" button. Yes, it does happen.
 
-The primary reason for the failsafe is so that there is ALWAYS a recording
-of a group, even if no-one pressed the "start recording" button. Yes, it 
-does happen.
+DELETION of the files recorded via the failsafe program can be managed via a
+simple cron job, e.g.
 
-There is a  daemon, sunra-failsafe.rb which are run at startup via the 
-installed scripts.
+0 1 * * * find /mnt/RAID/VIDEO/FAILSAFE/*.mp4 -mtime +14 -delete 
 
-Included with the failsafe programs is an archiver program which manages
-the archiving and DELETION of the files recorded via the failsafe 
-programs. This should be configured to archive and delete at sensible
-intervals, those intervals which should be determined via your
-available storage space.
+This should be configured to delete at sensible intervals, those intervals
+which should be determined via your available storage space.
