@@ -9,7 +9,7 @@
 
 require 'daemons'
 
-require 'sunra_config/failsafe'
+require 'sunra_utils/config/failsafe'
 require_relative './archiver'
 
 # Only run once per hour
