@@ -1,9 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'sunra_capture'
-gem 'sunra_config'
-gem 'sunra_logging'
-gem 'sunra_ps'
+gem 'sunra_utils'
 
 group :development do
   gem 'guard'
