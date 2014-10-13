@@ -19,7 +19,7 @@ module Sunra
       include Sunra::Utils::PS
 
       def initialize(config, lockfile=nil)
-        @cap = Sunra::Capture.new(config)
+        @cap = Sunra::Utils::Capture.new(config)
         @lock_file = lockfile
         @lock_file =
           Sunra::Utils::LockFile.new('/tmp/failsafe.lock') if @lock_file.nil?

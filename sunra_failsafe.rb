@@ -12,15 +12,16 @@
 # ease with which audio can be extracted, a single MP4 recorder is
 # used for the failsafe service.
 #
-require "sunra_config/failsafe"
-require 'sunra_service'
+require "sunra_utils/config/failsafe"
+require 'sunra_utils/service'
 
 require_relative "failsafe"
-include SunraService
+
+include Sunra::Utils::Service
 
 require_relative "failsafe"
 
 service_name = "failsafe service.rb"
 usage service_name if ARGV.length != 1
-fs_rec = Sunra::Recording::Failsafe.new(Sunra::Config::Failsafe.new)
+fs_rec = Sunra::Recording::Failsafe.new(Sunra::Utils::Config::Failsafe.new)
 run(fs_rec, ARGV[0], "failsafe service.rb")
