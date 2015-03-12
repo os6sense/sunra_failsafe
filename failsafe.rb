@@ -10,7 +10,6 @@ require 'sunra_utils/lockfile'
 
 module Sunra
   module Recording
-
     # **CONTINUALLY** Capture audio/video from the ffserver
     # in files of 1hrs length. Length is determined via the
     # -t value specified in the relevant config file
@@ -18,8 +17,11 @@ module Sunra
       include Sunra::Utils::Logging
       include Sunra::Utils::PS
 
-      def initialize(config, lockfile=nil)
-        @cap = Sunra::Utils::Capture.new(config)
+      def initialize(config, lockfile = nil)
+        @cap = Sunra::Utils::Capture.new(config) do
+          logger.info 'Failsafe Capture Stopped'
+        end
+
         @lock_file = lockfile
         @lock_file =
           Sunra::Utils::LockFile.new('/tmp/failsafe.lock') if @lock_file.nil?
@@ -38,13 +40,13 @@ module Sunra
       # reason (its pid doesnt exist, which is what is_recording? should
       # tell us) then the failsafe service will attempt to restart as long
       # as its lockfile exists.
-      def start(monitor=false, daemonized = true)
+      def start(monitor = false, daemonized = true)
         if @lock_file.exists?
-          logger.warn "Service Running/Lockfile already exists! Exiting."
+          logger.warn 'Service Running/Lockfile already exists! Exiting.'
           return
         end
 
-        logger.info "Starting Failsafe Service"
+        logger.info 'Starting Failsafe Service'
 
         _start_capture
         _start_failsafe_thread
@@ -60,18 +62,18 @@ module Sunra
         @t = Thread.new do
           loop do
             unless @cap.is_recording?
-              logger.info('failsafe.start') { "Failsafe Restart Triggered." }
+              logger.info('failsafe.start') { 'Failsafe Restart Triggered.' }
               _start_capture
             end
 
             unless @lock_file.exists?
-              logger.info('failsafe.start') { "Lockfile absent, stopping!" }
+              logger.info('failsafe.start') { 'Lockfile absent, stopping!' }
               @cap.stop if @cap.is_recording?
               break
             end
             sleep 0.5
           end
-          stop()
+          stop
         end
       end
 
@@ -83,7 +85,7 @@ module Sunra
       def stop
         if @lock_file.exists?
           pid = Integer(@lock_file.contents[0])
-          logger.info('failsafe.stop') { "Deleting Lockfile."}
+          logger.info('failsafe.stop') { 'Deleting Lockfile.' }
 
           @lock_file.delete
           kill pid
@@ -94,32 +96,30 @@ module Sunra
       # Prints out the status of the service using the logger.
       def status
         unless @lock_file.exists?
-          logger.info { "Failsafe Stopped/Lockfile Not Found." }
+          logger.info { 'Failsafe Stopped/Lockfile Not Found.' }
           return
         end
 
         pid = Integer(@lock_file.contents[0])
-        if pid > -1 and pid_exists? pid
-          logger.info { "Failsafe Running."}
+        if pid > -1 && pid_exists?(pid)
+          logger.info { 'Failsafe Running.' }
         else
-          logger.warn { "Failsafe Running but unable to capture."}
+          logger.warn { 'Failsafe Running but unable to capture.' }
         end
       end
 
       protected
 
       def _start_capture
-        begin
-          @cap.start
-          @lock_file.create([@cap.pid])
-          logger.info "Failsafe Service Started."
-        rescue RuntimeError
-          # If the ffserver is not running we will definately receive
-          # a runtime error. Rather than abort we keep trying.
-          logger.error "Runtime Error attempting to start capture!"
-          @lock_file.create(-1)
-          sleep 1
-        end
+        @cap.start
+        @lock_file.create([@cap.pid])
+        logger.info 'Failsafe Service Started.'
+      rescue RuntimeError
+        # If the ffserver is not running we will definately receive
+        # a runtime error. Rather than abort we keep trying.
+        logger.error 'Runtime Error attempting to start capture!'
+        @lock_file.create(-1)
+        sleep 1
       end
     end
   end
